@@ -12,7 +12,8 @@ import qualified Data.Map as Map
 import Data.Foldable
 import Control.Monad.Ref
 import Control.Monad.Reader hiding (mapM, mapM_, forM, forM_, sequence)
-import Control.Monad.State hiding (mapM, mapM_, forM, forM_, sequence)
+import Control.Monad.State.Lazy as LS hiding (mapM, mapM_, forM, forM_, sequence)
+import Control.Monad.State.Strict as SS hiding (mapM, mapM_, forM, forM_, sequence)
 import Data.Dependent.Sum (DSum (..))
 import GHCJS.DOM.Types hiding (Event)
 import GHCJS.DOM (WebView)
@@ -52,7 +53,10 @@ class Monad m => HasDocument m where
 instance HasDocument m => HasDocument (ReaderT r m) where
   askDocument = lift askDocument
 
-instance HasDocument m => HasDocument (StateT r m) where
+instance HasDocument m => HasDocument (SS.StateT r m) where
+  askDocument = lift askDocument
+
+instance HasDocument m => HasDocument (LS.StateT r m) where
   askDocument = lift askDocument
 
 class Monad m => HasWebView m where
@@ -61,7 +65,10 @@ class Monad m => HasWebView m where
 instance HasWebView m => HasWebView (ReaderT r m) where
   askWebView = lift askWebView
 
-instance HasWebView m => HasWebView (StateT r m) where
+instance HasWebView m => HasWebView (SS.StateT r m) where
+  askWebView = lift askWebView
+
+instance HasWebView m => HasWebView (LS.StateT r m) where
   askWebView = lift askWebView
 
 newtype Restore m = Restore { restore :: forall a. m a -> IO a }
@@ -83,7 +90,7 @@ runFrameWithTriggerRef :: (HasPostGui t h m, MonadRef m, MonadIO m) => Ref m (Ma
 runFrameWithTriggerRef r a = do
   postGui <- askPostGui
   runWithActions <- askRunWithActions
-  liftIO . postGui $ mapM_ (\t -> runWithActions [t :=> Identity a]) =<< readRef r  
+  liftIO . postGui $ mapM_ (\t -> runWithActions [t :=> Identity a]) =<< readRef r
 
 instance HasPostGui t h m => HasPostGui t h (ReaderT r m) where
   askPostGui = lift askPostGui
