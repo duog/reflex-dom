@@ -96,6 +96,14 @@ instance HasPostGui t h m => HasPostGui t h (ReaderT r m) where
   askPostGui = lift askPostGui
   askRunWithActions = lift askRunWithActions
 
+instance HasPostGui t h m => HasPostGui t h (SS.StateT s m) where
+  askPostGui = lift askPostGui
+  askRunWithActions = lift askRunWithActions
+
+instance HasPostGui t h m => HasPostGui t h (LS.StateT s m) where
+  askPostGui = lift askPostGui
+  askRunWithActions = lift askRunWithActions
+
 instance MonadWidget t m => MonadWidget t (ReaderT r m) where
   type WidgetHost (ReaderT r m) = WidgetHost m
   type GuiAction (ReaderT r m) = GuiAction m
